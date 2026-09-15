@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dancing with the Stars 2026 Elimination Bracket</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1220;
+        --card: #162033;
+        --line: #2b3b58;
+        --text: #eef3ff;
+        --muted: #a9bad8;
+        --accent: #ffca2a;
+        --danger: #e05252;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(140deg, #0b1220 0%, #131b2d 100%);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+      }
+
+      .sub {
+        color: var(--muted);
+        margin-bottom: 20px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+
+      button {
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--text);
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        border-color: var(--accent);
+      }
+
+      .bracket {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(200px, 1fr));
+        gap: 14px;
+      }
+
+      .round {
+        background: rgba(22, 32, 51, 0.9);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+      }
+
+      .round h2 {
+        font-size: 1rem;
+        margin: 0 0 10px;
+      }
+
+      .pair {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+      }
+
+      .entry {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px;
+        background: #111a2b;
+      }
+
+      .entry + .entry {
+        border-top: 1px solid var(--line);
+      }
+
+      .name {
+        width: 100%;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text);
+        padding: 4px 6px;
+      }
+
+      .name:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: #1a2740;
+      }
+
+      .eliminate {
+        border-color: #5f3640;
+      }
+
+      .eliminated {
+        text-decoration: line-through;
+        color: #d6aeb5;
+      }
+
+      .small {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 900px) {
+        .bracket {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Dancing with the Stars 2026</h1>
+      <p class="sub">Public elimination bracket (auto-saves in your browser).</p>
+      <div class="toolbar">
+        <button id="reset">Reset Bracket</button>
+        <span class="small">Tip: edit names inline and mark eliminated couples.</span>
+      </div>
+
+      <section class="bracket" id="bracket"></section>
+    </main>
+
+    <script>
+      const defaultState = {
+        round16: [
+          "Couple 1", "Couple 2", "Couple 3", "Couple 4",
+          "Couple 5", "Couple 6", "Couple 7", "Couple 8",
+          "Couple 9", "Couple 10", "Couple 11", "Couple 12",
+          "Couple 13", "Couple 14", "Couple 15", "Couple 16"
+        ],
+        round8: ["", "", "", "", "", "", "", ""],
+        round4: ["", "", "", ""],
+        final2: ["", ""],
+        eliminated: {}
+      };
+
+      const rounds = [
+        ["Round of 16", "round16", 2, "round8"],
+        ["Quarterfinals", "round8", 2, "round4"],
+        ["Semifinals", "round4", 2, "final2"],
+        ["Finale", "final2", 2, null]
+      ];
+
+      const key = "dwts2026-bracket";
+      const bracketEl = document.getElementById("bracket");
+
+      function load() {
+        const raw = localStorage.getItem(key);
+        if (!raw) return structuredClone(defaultState);
+        try {
+          const parsed = JSON.parse(raw);
+          return {
+            ...structuredClone(defaultState),
+            ...parsed,
+            eliminated: parsed.eliminated || {}
+          };
+        } catch {
+          return structuredClone(defaultState);
+        }
+      }
+
+      let state = load();
+
+      function save() {
+        localStorage.setItem(key, JSON.stringify(state));
+      }
+
+      function propagate(fromKey, toKey) {
+        if (!toKey) return;
+        const source = state[fromKey];
+        const next = [];
+        for (let i = 0; i < source.length; i += 2) {
+          const a = source[i];
+          const b = source[i + 1];
+          const aOut = state.eliminated[`${fromKey}-${i}`];
+          const bOut = state.eliminated[`${fromKey}-${i + 1}`];
+          if (a && !aOut && (!b || bOut)) next.push(a);
+          else if (b && !bOut && (!a || aOut)) next.push(b);
+          else next.push("");
+        }
+        state[toKey] = state[toKey].map((_, idx) => next[idx] || "");
+      }
+
+      function cascade() {
+        for (const [, from, , to] of rounds) propagate(from, to);
+      }
+
+      function render() {
+        cascade();
+        bracketEl.innerHTML = "";
+
+        for (const [title, keyName, pairSize, nextRound] of rounds) {
+          const col = document.createElement("article");
+          col.className = "round";
+          col.innerHTML = `<h2>${title}</h2>`;
+
+          for (let i = 0; i < state[keyName].length; i += pairSize) {
+            const pair = document.createElement("div");
+            pair.className = "pair";
+
+            for (let j = 0; j < pairSize; j++) {
+              const idx = i + j;
+              const row = document.createElement("div");
+              row.className = "entry";
+
+              const input = document.createElement("input");
+              input.className = "name";
+              input.value = state[keyName][idx] || "";
+              input.placeholder = `Competitor ${idx + 1}`;
+              input.addEventListener("input", (e) => {
+                state[keyName][idx] = e.target.value;
+                save();
+                if (nextRound) render();
+              });
+
+              const btn = document.createElement("button");
+              btn.className = "eliminate";
+              btn.textContent = state.eliminated[`${keyName}-${idx}`] ? "Undo" : "Out";
+
+              if (state.eliminated[`${keyName}-${idx}`]) input.classList.add("eliminated");
+
+              btn.addEventListener("click", () => {
+                const tag = `${keyName}-${idx}`;
+                state.eliminated[tag] = !state.eliminated[tag];
+                if (!state.eliminated[tag]) delete state.eliminated[tag];
+                save();
+                render();
+              });
+
+              row.append(input, btn);
+              pair.append(row);
+            }
+
+            col.append(pair);
+          }
+
+          bracketEl.append(col);
+        }
+
+        save();
+      }
+
+      document.getElementById("reset").addEventListener("click", () => {
+        state = structuredClone(defaultState);
+        save();
+        render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>
