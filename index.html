@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ballroom Blitz — DWTS Fantasy League</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0A0E1A;
+    --mid-navy: #1E2540;
+    --card-navy: #141928;
+    --gold: #C9A84C;
+    --gold-bright: #E8C96E;
+    --gold-dim: #8C7234;
+    --champagne: #F5F0E8;
+    --champagne-dim: #C8C0B0;
+    --white: #FFFFFF;
+    --text-muted: #8890A8;
+    --border: rgba(201,168,76,0.2);
+    --border-strong: rgba(201,168,76,0.4);
+    --success: #4CAF6E;
+    --danger: #E05C5C;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--navy);
+    color: var(--champagne);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .header {
+    background: var(--mid-navy);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
+    text-align: center;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--gold-bright);
+    letter-spacing: -0.5px;
+  }
+  .logo span { font-style: italic; color: var(--champagne); }
+  .tagline {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .nav {
+    display: flex;
+    background: var(--card-navy);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex: none;
+    padding: 12px 18px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .nav-btn.active { color: var(--gold-bright); border-bottom-color: var(--gold-bright); }
+  .nav-btn:hover:not(.active) { color: var(--champagne); }
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+  .card {
+    background: var(--card-navy);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    color: var(--gold-bright);
+    margin-bottom: 12px;
+  }
+
+  /* Leaderboard */
+  .leaderboard-row {
+    display: flex;
+    align-items: center;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .leaderboard-row:last-child { border-bottom: none; }
+  .rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--gold-dim);
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .rank.top { color: var(--gold-bright); }
+  .player-info { flex: 1; min-width: 0; }
+  .player-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--champagne);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .player-picks {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .player-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold-bright);
+    flex-shrink: 0;
+  }
+
+  /* Couples */
+  .couple-card {
+    background: var(--card-navy);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .couple-card.eliminated { opacity: 0.45; }
+  .couple-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--mid-navy);
+    border: 2px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .couple-info { flex: 1; min-width: 0; }
+  .couple-names { font-weight: 500; font-size: 14px; color: var(--champagne); }
+  .couple-pro { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .couple-score-area { text-align: right; flex-shrink: 0; }
+  .couple-score { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold-bright); }
+  .couple-week { font-size: 11px; color: var(--text-muted); }
+  .eliminated-tag {
+    font-size: 10px;
+    background: rgba(224,92,92,0.15);
+    color: var(--danger);
+    border: 1px solid rgba(224,92,92,0.3);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-top: 3px;
+    display: inline-block;
+  }
+
+  /* Picks */
+  .pick-slot {
+    background: var(--mid-navy);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .pick-slot:hover { border-color: var(--gold); background: var(--card-navy); }
+  .pick-slot.filled {
+    background: var(--card-navy);
+    border-style: solid;
+    border-color: var(--border-strong);
+    cursor: default;
+  }
+  .pick-slot.filled:hover { border-color: var(--gold); }
+  .slot-emoji { font-size: 24px; }
+  .slot-content { flex: 1; }
+  .slot-name { font-size: 14px; font-weight: 500; color: var(--champagne); }
+  .slot-detail { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .slot-points { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold-bright); }
+  .remove-btn {
+    background: none;
+    border: 1px solid rgba(224,92,92,0.3);
+    color: var(--danger);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .remove-btn:hover { background: rgba(224,92,92,0.1); }
+
+  /* Elimination prediction slot */
+  .elim-slot {
+    border: 1px dashed rgba(224,92,92,0.4);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    background: rgba(224,92,92,0.05);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .elim-slot:hover { background: rgba(224,92,92,0.1); border-color: rgba(224,92,92,0.7); }
+  .elim-slot.filled {
+    border-style: solid;
+    border-color: rgba(224,92,92,0.5);
+    cursor: default;
+  }
+  .elim-slot.correct {
+    border-color: var(--success);
+    background: rgba(76,175,110,0.1);
+  }
+  .elim-slot.wrong {
+    border-color: var(--danger);
+    background: rgba(224,92,92,0.08);
+    opacity: 0.7;
+  }
+  .bonus-badge {
+    font-size: 11px;
+    background: rgba(76,175,110,0.2);
+    color: var(--success);
+    border: 1px solid rgba(76,175,110,0.4);
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+  .wrong-badge {
+    font-size: 11px;
+    background: rgba(224,92,92,0.15);
+    color: var(--danger);
+    border: 1px solid rgba(224,92,92,0.3);
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--mid-navy);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    color: var(--gold-bright);
+    margin-bottom: 16px;
+  }
+  .modal-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 4px;
+  }
+  .modal-option:hover { background: var(--card-navy); }
+  .modal-option.disabled { opacity: 0.35; pointer-events: none; }
+  .modal-option-name { font-size: 14px; font-weight: 500; color: var(--champagne); }
+  .modal-option-detail { font-size: 12px; color: var(--text-muted); }
+  .modal-close {
+    width: 100%;
+    margin-top: 12px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .modal-close:hover { border-color: var(--border-strong); color: var(--champagne); }
+
+  /* Scoring */
+  .score-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-input-row:last-child { border-bottom: none; }
+  .score-input-name { flex: 1; font-size: 13px; color: var(--champagne); }
+  .score-input-field {
+    width: 60px;
+    background: var(--mid-navy);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--champagne);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+  .score-input-field:focus { outline: none; border-color: var(--gold); }
+  .elim-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+  }
+  .elim-toggle.active {
+    background: rgba(224,92,92,0.15);
+    border-color: rgba(224,92,92,0.4);
+    color: var(--danger);
+  }
+
+  /* Prediction summary in scoring */
+  .prediction-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .prediction-row:last-child { border-bottom: none; }
+  .prediction-player { flex: 1; color: var(--champagne); }
+  .prediction-pick { color: var(--text-muted); font-size: 12px; }
+  .prediction-result { font-size: 12px; font-weight: 500; }
+  .prediction-result.correct { color: var(--success); }
+  .prediction-result.pending { color: var(--text-muted); }
+  .prediction-result.wrong { color: var(--danger); }
+
+  .btn-gold {
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 14px;
+    transition: background 0.2s;
+  }
+  .btn-gold:hover { background: var(--gold-bright); }
+
+  .player-manage-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .player-manage-row:last-child { border-bottom: none; }
+  .player-manage-name { flex: 1; font-size: 14px; color: var(--champagne); }
+  .btn-danger {
+    background: none;
+    border: 1px solid rgba(224,92,92,0.3);
+    color: var(--danger);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-danger:hover { background: rgba(224,92,92,0.1); }
+
+  input[type="text"], input[type="number"] {
+    background: var(--mid-navy);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--champagne);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--gold); }
+  input::placeholder { color: var(--text-muted); }
+
+  .week-badge {
+    display: inline-block;
+    background: rgba(201,168,76,0.15);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    border-radius: 20px;
+    font-size: 12px;
+    padding: 4px 12px;
+    margin-bottom: 14px;
+  }
+  .section-hint {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--champagne-dim);
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 400px) {
+    .logo { font-size: 22px; }
+    .player-score { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Ballroom <span>Blitz</span></div>
+  <div class="tagline">Dancing with the Stars · Fantasy League</div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('leaderboard')">Leaderboard</button>
+  <button class="nav-btn" onclick="showPage('couples')">Couples</button>
+  <button class="nav-btn" onclick="showPage('picks')">My Picks</button>
+  <button class="nav-btn" onclick="showPage('scoring')">Scoring</button>
+  <button class="nav-btn" onclick="showPage('league')">League</button>
+</nav>
+
+<!-- LEADERBOARD -->
+<div id="page-leaderboard" class="page active">
+  <div class="week-badge" id="week-label">Week 1</div>
+  <div class="card" id="leaderboard-list"></div>
+  <p class="section-hint" style="text-align:center; margin-top:8px;">Scores update when the commissioner enters results in the Scoring tab.</p>
+</div>
+
+<!-- COUPLES -->
+<div id="page-couples" class="page">
+  <div class="week-badge" id="couples-week-label">Week 1</div>
+  <div id="couples-list"></div>
+</div>
+
+<!-- MY PICKS -->
+<div id="page-picks" class="page">
+  <div class="card">
+    <div class="card-title">Your lineup</div>
+    <p class="section-hint">Pick up to 3 couples. Points are totaled each week based on their judges' scores.</p>
+    <div id="picks-slots"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Who goes home this week?</div>
+    <p class="section-hint">Predict which couple will be eliminated in Week <span id="elim-pick-week">1</span>. A correct guess earns <span style="color:var(--gold); font-weight:600;">+5 bonus points</span>.</p>
+    <div id="elim-pick-slot"></div>
+  </div>
+
+  <div id="picks-total-card" class="card" style="display:none;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+      <div style="text-align:center;">
+        <div style="font-size:11px; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:4px;">Lineup pts</div>
+        <div style="font-family:'Playfair Display',serif; font-size:28px; color:var(--gold-bright);" id="picks-lineup-total">0</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:11px; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:4px;">Prediction bonus</div>
+        <div style="font-family:'Playfair Display',serif; font-size:28px; color:var(--gold-bright);" id="picks-bonus-total">0</div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border); padding-top:12px; text-align:center;">
+      <div style="font-size:11px; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:4px;">Total score</div>
+      <div style="font-family:'Playfair Display',serif; font-size:36px; color:var(--gold-bright);" id="picks-total">0</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCORING (Commissioner) -->
+<div id="page-scoring" class="page">
+  <div class="card">
+    <div class="card-title">Enter weekly scores</div>
+    <p class="section-hint">Commissioner: enter judges' scores (0–40) and toggle "Out" for the eliminated couple. Correct predictions earn +5 pts automatically.</p>
+    <div id="scoring-inputs"></div>
+    <button class="btn-gold" onclick="saveScores()">Save scores &amp; update leaderboard</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Elimination predictions — Week <span id="scoring-pred-week">1</span></div>
+    <p class="section-hint">Who predicted correctly this week?</p>
+    <div id="prediction-summary"></div>
+  </div>
+
+  <div class="card" style="margin-top:12px;">
+    <div class="card-title">Week</div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button onclick="changeWeek(-1)" style="background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px 14px; font-size:16px; cursor:pointer;">−</button>
+      <span id="week-display" style="font-family:'Playfair Display',serif; font-size:20px; color:var(--gold-bright); flex:1; text-align:center;">Week 1</span>
+      <button onclick="changeWeek(1)" style="background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px 14px; font-size:16px; cursor:pointer;">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEAGUE MANAGEMENT -->
+<div id="page-league" class="page">
+  <div class="card">
+    <div class="card-title">League players</div>
+    <div id="player-list"></div>
+    <div style="margin-top:14px; border-top:1px solid var(--border); padding-top:14px;">
+      <input type="text" id="new-player-name" placeholder="Player name" />
+      <button class="btn-gold" onclick="addPlayer()">Add player</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">League settings</div>
+    <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Picks per player</div>
+    <div style="display:flex; gap:8px;">
+      <button class="picks-count-btn" onclick="setMaxPicks(1)" style="flex:1; background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px; cursor:pointer; font-family:'Inter',sans-serif;">1</button>
+      <button class="picks-count-btn" onclick="setMaxPicks(2)" style="flex:1; background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px; cursor:pointer; font-family:'Inter',sans-serif;">2</button>
+      <button class="picks-count-btn" onclick="setMaxPicks(3)" style="flex:1; background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px; cursor:pointer; font-family:'Inter',sans-serif;">3</button>
+      <button class="picks-count-btn" onclick="setMaxPicks(4)" style="flex:1; background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px; cursor:pointer; font-family:'Inter',sans-serif;">4</button>
+    </div>
+    <div style="font-size:12px; color:var(--gold); margin-top:8px;" id="max-picks-display"></div>
+    <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
+      <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Bonus points for correct elimination prediction</div>
+      <div style="display:flex; gap:8px;">
+        <button class="bonus-count-btn" onclick="setBonusPts(3)" style="flex:1; background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px; cursor:pointer; font-family:'Inter',sans-serif;">3 pts</button>
+        <button class="bonus-count-btn" onclick="setBonusPts(5)" style="flex:1; background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px; cursor:pointer; font-family:'Inter',sans-serif;">5 pts</button>
+        <button class="bonus-count-btn" onclick="setBonusPts(10)" style="flex:1; background:var(--mid-navy); border:1px solid var(--border-strong); color:var(--champagne); border-radius:6px; padding:8px; cursor:pointer; font-family:'Inter',sans-serif;">10 pts</button>
+      </div>
+      <div style="font-size:12px; color:var(--gold); margin-top:8px;" id="bonus-pts-display"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Add a couple to the cast</div>
+    <input type="text" id="new-celeb" placeholder="Celebrity name" />
+    <input type="text" id="new-pro" placeholder="Pro partner" />
+    <input type="text" id="new-emoji" placeholder="Emoji (e.g. 💃)" />
+    <button class="btn-gold" onclick="addCouple()">Add couple</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Data</div>
+    <p class="section-hint">Copy this to share your league state, or paste to restore it.</p>
+    <textarea id="data-export" style="width:100%; background:var(--mid-navy); border:1px solid var(--border-strong); border-radius:8px; color:var(--champagne-dim); font-family:monospace; font-size:11px; padding:10px; height:80px; resize:none; margin-bottom:10px;"></textarea>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <button onclick="exportData()" style="background:none; border:1px solid var(--border-strong); color:var(--champagne); border-radius:8px; padding:10px; font-family:'Inter',sans-serif; font-size:13px; cursor:pointer;">Copy state</button>
+      <button onclick="importData()" style="background:none; border:1px solid var(--border-strong); color:var(--champagne); border-radius:8px; padding:10px; font-family:'Inter',sans-serif; font-size:13px; cursor:pointer;">Import state</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pick selection modal -->
+<div class="modal-overlay" id="pick-modal">
+  <div class="modal">
+    <div class="modal-title">Choose a couple</div>
+    <div id="pick-modal-options"></div>
+    <button class="modal-close" onclick="closePickModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Elimination prediction modal -->
+<div class="modal-overlay" id="elim-modal">
+  <div class="modal">
+    <div class="modal-title">Who goes home this week?</div>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Pick the couple you think will be eliminated in Week <span id="elim-modal-week">1</span>.</p>
+    <div id="elim-modal-options"></div>
+    <button class="modal-close" onclick="closeElimModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+const DEFAULT_COUPLES = [
+  { id: 1,  celeb: "Tatyana Ali",         pro: "Jan Ravnik",         emoji: "🎤", scores: {}, eliminated: false },
+  { id: 2,  celeb: "Tyler Cameron",       pro: "Sharna Burgess",     emoji: "🏠", scores: {}, eliminated: false },
+  { id: 3,  celeb: "Giada De Laurentiis", pro: "Alan Bersten",       emoji: "👩‍🍳", scores: {}, eliminated: false },
+  { id: 4,  celeb: "Jenna Dewan",         pro: "Val Chmerkovskiy",   emoji: "💃", scores: {}, eliminated: false },
+  { id: 5,  celeb: "Ezra Frech",          pro: "Daniella Karagach",  emoji: "🥇", scores: {}, eliminated: false },
+  { id: 6,  celeb: "Amber Glenn",         pro: "Pasha Pashkov",      emoji: "⛸️", scores: {}, eliminated: false },
+  { id: 7,  celeb: "Taylor Hanson",       pro: "Britt Stewart",      emoji: "🎵", scores: {}, eliminated: false },
+  { id: 8,  celeb: "Maura Higgins",       pro: "Mark Ballas",        emoji: "🌹", scores: {}, eliminated: false },
+  { id: 9,  celeb: "Conner Leavitt",      pro: "Adele Zaikman",      emoji: "🎬", scores: {}, eliminated: false },
+  { id: 10, celeb: "Ciara Miller",        pro: "Brandon Armstrong",  emoji: "✨", scores: {}, eliminated: false },
+  { id: 11, celeb: "Sarah Jane Nader",    pro: "Hailey Bills",       emoji: "👠", scores: {}, eliminated: false },
+  { id: 12, celeb: "Jackson Olson",       pro: "Emma Slater",        emoji: "⚾", scores: {}, eliminated: false },
+  { id: 13, celeb: "Guillermo Rodriguez", pro: "Witney Carson",      emoji: "😄", scores: {}, eliminated: false },
+  { id: 14, celeb: "Harry Shum Jr.",      pro: "Jenna Johnson",      emoji: "🩺", scores: {}, eliminated: false },
+  { id: 15, celeb: "Julia Stiles",        pro: "Ezra Sosa",          emoji: "🎭", scores: {}, eliminated: false },
+  { id: 16, celeb: "Connor Wood",         pro: "Rylee Arnold",       emoji: "🎙️", scores: {}, eliminated: false },
+];
+
+const DEFAULT_PLAYERS = [
+  { id: 1, name: "Player 1", picks: [], elimPicks: {} },
+];
+
+let state = {
+  couples: [],
+  players: [],
+  currentWeek: 1,
+  maxPicks: 3,
+  bonusPts: 5,
+  myPlayerId: 1,
+};
+
+let pickingSlotIndex = null;
+
+// ── State helpers ──────────────────────────────────────────
+
+function loadState() {
+  const saved = localStorage.getItem('dwts_fantasy_state_v2');
+  if (saved) {
+    try { state = JSON.parse(saved); }
+    catch(e) { resetToDefaults(); }
+  } else {
+    resetToDefaults();
+  }
+  // back-compat: ensure all players have elimPicks
+  state.players.forEach(p => { if (!p.elimPicks) p.elimPicks = {}; });
+  if (!state.bonusPts) state.bonusPts = 5;
+}
+
+function resetToDefaults() {
+  state.couples = DEFAULT_COUPLES;
+  state.players = DEFAULT_PLAYERS;
+}
+
+function saveState() {
+  localStorage.setItem('dwts_fantasy_state_v2', JSON.stringify(state));
+}
+
+// ── Scoring helpers ────────────────────────────────────────
+
+function getCoupleTotalScore(couple) {
+  return Object.values(couple.scores || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+}
+
+// couples that were eliminated and in which week
+function getEliminatedCoupleForWeek(week) {
+  // find couples newly eliminated by checking eliminations
+  // We store which week each couple was eliminated in couple.eliminatedWeek
+  return state.couples.find(c => c.eliminatedWeek === week) || null;
+}
+
+function getPlayerLineupScore(player) {
+  return (player.picks || []).reduce((total, coupleId) => {
+    const couple = state.couples.find(c => c.id === coupleId);
+    return total + (couple ? getCoupleTotalScore(couple) : 0);
+  }, 0);
+}
+
+function getPlayerBonusScore(player) {
+  let bonus = 0;
+  Object.entries(player.elimPicks || {}).forEach(([week, coupleId]) => {
+    const eliminated = getEliminatedCoupleForWeek(Number(week));
+    if (eliminated && eliminated.id === coupleId) bonus += state.bonusPts;
+  });
+  return bonus;
+}
+
+function getPlayerTotalScore(player) {
+  return getPlayerLineupScore(player) + getPlayerBonusScore(player);
+}
+
+function getMyPlayer() {
+  return state.players.find(p => p.id === state.myPlayerId) || state.players[0];
+}
+
+// ── Navigation ─────────────────────────────────────────────
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+  render();
+}
+
+// ── Render ─────────────────────────────────────────────────
+
+function render() {
+  renderLeaderboard();
+  renderCouples();
+  renderPicks();
+  renderScoring();
+  renderLeague();
+}
+
+function renderLeaderboard() {
+  const el = document.getElementById('leaderboard-list');
+  document.getElementById('week-label').textContent = 'Week ' + state.currentWeek;
+
+  const sorted = [...state.players].map(p => ({
+    ...p,
+    lineupScore: getPlayerLineupScore(p),
+    bonusScore: getPlayerBonusScore(p),
+    totalScore: getPlayerTotalScore(p),
+  })).sort((a, b) => b.totalScore - a.totalScore);
+
+  if (sorted.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">No players yet</div><div>Add players in the League tab.</div></div>';
+    return;
+  }
+
+  el.innerHTML = sorted.map((player, i) => {
+    const pickNames = (player.picks || []).map(id => {
+      const c = state.couples.find(cc => cc.id === id);
+      return c ? c.celeb.split(' ')[0] : '—';
+    }).join(', ');
+
+    const myElimPick = (player.elimPicks || {})[state.currentWeek];
+    const elimCouple = myElimPick ? state.couples.find(c => c.id === myElimPick) : null;
+    const actualElim = getEliminatedCoupleForWeek(state.currentWeek);
+    let predBadge = '';
+    if (elimCouple) {
+      if (actualElim) {
+        if (actualElim.id === elimCouple.id) {
+          predBadge = `<span style="font-size:10px; background:rgba(76,175,110,0.2); color:var(--success); border:1px solid rgba(76,175,110,0.4); border-radius:4px; padding:1px 5px; margin-left:4px;">✓ +${state.bonusPts}</span>`;
+        } else {
+          predBadge = `<span style="font-size:10px; background:rgba(224,92,92,0.15); color:var(--danger); border:1px solid rgba(224,92,92,0.3); border-radius:4px; padding:1px 5px; margin-left:4px;">✗</span>`;
+        }
+      } else {
+        predBadge = `<span style="font-size:10px; color:var(--text-muted); margin-left:4px;">🎯 ${elimCouple.celeb.split(' ')[0]}</span>`;
+      }
+    }
+
+    return `
+      <div class="leaderboard-row">
+        <div class="rank ${i < 3 ? 'top' : ''}">${['🥇','🥈','🥉'][i] || (i+1)}</div>
+        <div class="player-info">
+          <div class="player-name">${esc(player.name)}${predBadge}</div>
+          <div class="player-picks">${pickNames || 'No picks yet'}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="player-score">${player.totalScore}</div>
+          ${player.bonusScore > 0 ? `<div style="font-size:11px; color:var(--success);">+${player.bonusScore} bonus</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCouples() {
+  const el = document.getElementById('couples-list');
+  document.getElementById('couples-week-label').textContent = 'Week ' + state.currentWeek;
+
+  const sorted = [...state.couples].sort((a, b) => {
+    if (a.eliminated && !b.eliminated) return 1;
+    if (!a.eliminated && b.eliminated) return -1;
+    return getCoupleTotalScore(b) - getCoupleTotalScore(a);
+  });
+
+  el.innerHTML = sorted.map(c => {
+    const total = getCoupleTotalScore(c);
+    const weekScore = c.scores[state.currentWeek] || '—';
+    return `
+      <div class="couple-card ${c.eliminated ? 'eliminated' : ''}">
+        <div class="couple-avatar">${c.emoji}</div>
+        <div class="couple-info">
+          <div class="couple-names">${esc(c.celeb)}</div>
+          <div class="couple-pro">w/ ${esc(c.pro)}</div>
+          ${c.eliminated ? `<span class="eliminated-tag">Out — Wk ${c.eliminatedWeek || '?'}</span>` : ''}
+        </div>
+        <div class="couple-score-area">
+          <div class="couple-score">${total}</div>
+          <div class="couple-week">Wk${state.currentWeek}: ${weekScore}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPicks() {
+  const myPlayer = getMyPlayer();
+  if (!myPlayer) return;
+  const el = document.getElementById('picks-slots');
+  const totalCard = document.getElementById('picks-total-card');
+
+  // Lineup slots
+  let html = '';
+  for (let i = 0; i < state.maxPicks; i++) {
+    const coupleId = (myPlayer.picks || [])[i];
+    const couple = coupleId ? state.couples.find(c => c.id === coupleId) : null;
+    const points = couple ? getCoupleTotalScore(couple) : 0;
+    if (couple) {
+      html += `
+        <div class="pick-slot filled">
+          <div class="slot-emoji">${couple.emoji}</div>
+          <div class="slot-content">
+            <div class="slot-name">${esc(couple.celeb)}</div>
+            <div class="slot-detail">w/ ${esc(couple.pro)}${couple.eliminated ? ' · Eliminated' : ''}</div>
+          </div>
+          <div class="slot-points">${points} pts</div>
+          <button class="remove-btn" onclick="removePick(${i})">✕</button>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="pick-slot" onclick="openPickModal(${i})">
+          <div class="slot-emoji" style="opacity:0.3">💃</div>
+          <div class="slot-content">
+            <div class="slot-name" style="color:var(--text-muted)">Pick ${i+1}</div>
+            <div class="slot-detail">Tap to choose a couple</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+  el.innerHTML = html;
+
+  // Elimination prediction slot
+  document.getElementById('elim-pick-week').textContent = state.currentWeek;
+  const elimEl = document.getElementById('elim-pick-slot');
+  const myElimPick = (myPlayer.elimPicks || {})[state.currentWeek];
+  const elimCouple = myElimPick ? state.couples.find(c => c.id === myElimPick) : null;
+  const actualElim = getEliminatedCoupleForWeek(state.currentWeek);
+
+  if (elimCouple) {
+    let statusBadge = '';
+    let slotClass = 'filled';
+    if (actualElim) {
+      if (actualElim.id === elimCouple.id) {
+        statusBadge = `<span class="bonus-badge">+${state.bonusPts} pts ✓</span>`;
+        slotClass = 'correct';
+      } else {
+        statusBadge = `<span class="wrong-badge">Wrong ✗</span>`;
+        slotClass = 'wrong';
+      }
+    } else {
+      statusBadge = `<span style="font-size:11px; color:var(--text-muted);">Awaiting result</span>`;
+    }
+    elimEl.innerHTML = `
+      <div class="elim-slot ${slotClass}">
+        <div style="font-size:24px;">${elimCouple.emoji}</div>
+        <div style="flex:1;">
+          <div style="font-size:14px; font-weight:500; color:var(--champagne);">${esc(elimCouple.celeb)}</div>
+          <div style="font-size:12px; color:var(--text-muted);">w/ ${esc(elimCouple.pro)}</div>
+        </div>
+        ${statusBadge}
+        ${!actualElim ? `<button class="remove-btn" onclick="removeElimPick()">✕</button>` : ''}
+      </div>
+    `;
+  } else {
+    const alreadyElim = actualElim !== null;
+    if (alreadyElim) {
+      elimEl.innerHTML = `<div style="font-size:13px; color:var(--text-muted); padding:12px 0;">Results are in — no prediction was made for this week.</div>`;
+    } else {
+      elimEl.innerHTML = `
+        <div class="elim-slot" onclick="openElimModal()">
+          <div style="font-size:24px; opacity:0.4;">🚪</div>
+          <div style="flex:1;">
+            <div style="font-size:14px; font-weight:500; color:var(--text-muted);">Make your prediction</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Tap to pick who goes home</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Score totals
+  const lineupScore = getPlayerLineupScore(myPlayer);
+  const bonusScore = getPlayerBonusScore(myPlayer);
+  totalCard.style.display = 'block';
+  document.getElementById('picks-lineup-total').textContent = lineupScore;
+  document.getElementById('picks-bonus-total').textContent = bonusScore;
+  document.getElementById('picks-total').textContent = lineupScore + bonusScore;
+}
+
+function renderScoring() {
+  const el = document.getElementById('scoring-inputs');
+  document.getElementById('week-display').textContent = 'Week ' + state.currentWeek;
+  document.getElementById('scoring-pred-week').textContent = state.currentWeek;
+
+  el.innerHTML = state.couples.map(c => `
+    <div class="score-input-row">
+      <div class="score-input-name">${c.emoji} ${esc(c.celeb)}</div>
+      <input type="number" class="score-input-field" min="0" max="40"
+        value="${c.scores[state.currentWeek] || ''}"
+        placeholder="—"
+        id="score-${c.id}" />
+      <button class="elim-toggle ${c.eliminated ? 'active' : ''}" onclick="toggleElim(${c.id})">
+        ${c.eliminated ? 'Out' : 'In'}
+      </button>
+    </div>
+  `).join('');
+
+  // Prediction summary
+  const predEl = document.getElementById('prediction-summary');
+  const actualElim = getEliminatedCoupleForWeek(state.currentWeek);
+
+  if (state.players.length === 0) {
+    predEl.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">No players yet.</div>';
+    return;
+  }
+
+  predEl.innerHTML = state.players.map(p => {
+    const myElimPick = (p.elimPicks || {})[state.currentWeek];
+    const elimCouple = myElimPick ? state.couples.find(c => c.id === myElimPick) : null;
+    let resultHtml = '';
+    let resultClass = 'pending';
+    if (!elimCouple) {
+      resultHtml = '—';
+    } else if (!actualElim) {
+      resultHtml = 'Pending';
+      resultClass = 'pending';
+    } else if (actualElim.id === elimCouple.id) {
+      resultHtml = `+${state.bonusPts} pts ✓`;
+      resultClass = 'correct';
+    } else {
+      resultHtml = 'Wrong ✗';
+      resultClass = 'wrong';
+    }
+    return `
+      <div class="prediction-row">
+        <div class="prediction-player">${esc(p.name)}</div>
+        <div class="prediction-pick">${elimCouple ? elimCouple.emoji + ' ' + esc(elimCouple.celeb) : 'No pick'}</div>
+        <div class="prediction-result ${resultClass}">${resultHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLeague() {
+  const el = document.getElementById('player-list');
+  if (state.players.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-muted); font-size:14px; padding:8px 0;">No players yet.</div>';
+  } else {
+    el.innerHTML = state.players.map(p => `
+      <div class="player-manage-row">
+        <div style="font-size:18px; width:28px;">${p.id === state.myPlayerId ? '⭐' : '👤'}</div>
+        <div class="player-manage-name">${esc(p.name)}</div>
+        <button onclick="setMyPlayer(${p.id})" style="background:none; border:1px solid var(--border-strong); color:var(--gold); border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; margin-right:4px;">${p.id === state.myPlayerId ? 'Active' : 'Play as'}</button>
+        <button class="btn-danger" onclick="removePlayer(${p.id})">Remove</button>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('max-picks-display').textContent = `Currently ${state.maxPicks} pick${state.maxPicks > 1 ? 's' : ''} per player`;
+  document.getElementById('bonus-pts-display').textContent = `Currently ${state.bonusPts} bonus points for a correct prediction`;
+  updatePickCountBtns();
+
+  document.getElementById('data-export').value = JSON.stringify(state, null, 2);
+}
+
+function updatePickCountBtns() {
+  document.querySelectorAll('.picks-count-btn').forEach((btn, i) => {
+    const val = i + 1;
+    btn.style.borderColor = val === state.maxPicks ? 'var(--gold)' : 'var(--border-strong)';
+    btn.style.color = val === state.maxPicks ? 'var(--gold-bright)' : 'var(--champagne)';
+  });
+  const bonusVals = [3, 5, 10];
+  document.querySelectorAll('.bonus-count-btn').forEach((btn, i) => {
+    btn.style.borderColor = bonusVals[i] === state.bonusPts ? 'var(--gold)' : 'var(--border-strong)';
+    btn.style.color = bonusVals[i] === state.bonusPts ? 'var(--gold-bright)' : 'var(--champagne)';
+  });
+}
+
+// ── Actions ────────────────────────────────────────────────
+
+function saveScores() {
+  state.couples.forEach(c => {
+    const input = document.getElementById('score-' + c.id);
+    if (input) {
+      const val = parseInt(input.value);
+      if (!isNaN(val) && val >= 0) {
+        c.scores[state.currentWeek] = val;
+      } else {
+        delete c.scores[state.currentWeek];
+      }
+    }
+  });
+  saveState();
+  render();
+  showToast('Scores saved!');
+}
+
+function toggleElim(coupleId) {
+  const c = state.couples.find(cc => cc.id === coupleId);
+  if (!c) return;
+  c.eliminated = !c.eliminated;
+  if (c.eliminated) {
+    c.eliminatedWeek = state.currentWeek;
+  } else {
+    delete c.eliminatedWeek;
+  }
+  saveState();
+  renderScoring();
+  renderLeaderboard();
+}
+
+function changeWeek(delta) {
+  state.currentWeek = Math.max(1, state.currentWeek + delta);
+  saveState();
+  render();
+}
+
+// Lineup picks
+function openPickModal(slotIndex) {
+  pickingSlotIndex = slotIndex;
+  const myPlayer = getMyPlayer();
+  const currentPicks = myPlayer ? (myPlayer.picks || []) : [];
+  const el = document.getElementById('pick-modal-options');
+  const available = state.couples.filter(c => !c.eliminated);
+
+  el.innerHTML = available.map(c => {
+    const alreadyPicked = currentPicks.includes(c.id);
+    const score = getCoupleTotalScore(c);
+    return `
+      <div class="modal-option ${alreadyPicked ? 'disabled' : ''}" onclick="selectCouple(${c.id})">
+        <div style="font-size:24px;">${c.emoji}</div>
+        <div>
+          <div class="modal-option-name">${esc(c.celeb)}${alreadyPicked ? ' ✓' : ''}</div>
+          <div class="modal-option-detail">w/ ${esc(c.pro)} · ${score} pts total</div>
+        </div>
+      </div>
+    `;
+  }).join('') || '<div style="color:var(--text-muted); font-size:14px;">No active couples available.</div>';
+
+  document.getElementById('pick-modal').classList.add('open');
+}
+
+function selectCouple(coupleId) {
+  const myPlayer = getMyPlayer();
+  if (!myPlayer) return;
+  if (!myPlayer.picks) myPlayer.picks = [];
+  myPlayer.picks[pickingSlotIndex] = coupleId;
+  const filled = myPlayer.picks.filter(Boolean);
+  myPlayer.picks = filled.slice(0, state.maxPicks);
+  saveState();
+  closePickModal();
+  render();
+}
+
+function removePick(slotIndex) {
+  const myPlayer = getMyPlayer();
+  if (!myPlayer || !myPlayer.picks) return;
+  myPlayer.picks.splice(slotIndex, 1);
+  saveState();
+  render();
+}
+
+function closePickModal() {
+  document.getElementById('pick-modal').classList.remove('open');
+  pickingSlotIndex = null;
+}
+
+// Elimination picks
+function openElimModal() {
+  document.getElementById('elim-modal-week').textContent = state.currentWeek;
+  const el = document.getElementById('elim-modal-options');
+  const active = state.couples.filter(c => !c.eliminated);
+
+  el.innerHTML = active.map(c => `
+    <div class="modal-option" onclick="selectElimPick(${c.id})">
+      <div style="font-size:24px;">${c.emoji}</div>
+      <div>
+        <div class="modal-option-name">${esc(c.celeb)}</div>
+        <div class="modal-option-detail">w/ ${esc(c.pro)}</div>
+      </div>
+    </div>
+  `).join('') || '<div style="color:var(--text-muted); font-size:14px;">No active couples.</div>';
+
+  document.getElementById('elim-modal').classList.add('open');
+}
+
+function selectElimPick(coupleId) {
+  const myPlayer = getMyPlayer();
+  if (!myPlayer) return;
+  if (!myPlayer.elimPicks) myPlayer.elimPicks = {};
+  myPlayer.elimPicks[state.currentWeek] = coupleId;
+  saveState();
+  closeElimModal();
+  render();
+}
+
+function removeElimPick() {
+  const myPlayer = getMyPlayer();
+  if (!myPlayer || !myPlayer.elimPicks) return;
+  delete myPlayer.elimPicks[state.currentWeek];
+  saveState();
+  render();
+}
+
+function closeElimModal() {
+  document.getElementById('elim-modal').classList.remove('open');
+}
+
+// League management
+function addPlayer() {
+  const input = document.getElementById('new-player-name');
+  const name = input.value.trim();
+  if (!name) return;
+  const newId = Math.max(0, ...state.players.map(p => p.id)) + 1;
+  state.players.push({ id: newId, name, picks: [], elimPicks: {} });
+  input.value = '';
+  saveState();
+  render();
+}
+
+function removePlayer(id) {
+  state.players = state.players.filter(p => p.id !== id);
+  if (state.myPlayerId === id && state.players.length > 0) {
+    state.myPlayerId = state.players[0].id;
+  }
+  saveState();
+  render();
+}
+
+function setMyPlayer(id) {
+  state.myPlayerId = id;
+  saveState();
+  render();
+}
+
+function setMaxPicks(n) {
+  state.maxPicks = n;
+  state.players.forEach(p => {
+    if (p.picks && p.picks.length > n) p.picks = p.picks.slice(0, n);
+  });
+  saveState();
+  render();
+}
+
+function setBonusPts(n) {
+  state.bonusPts = n;
+  saveState();
+  render();
+}
+
+function addCouple() {
+  const celeb = document.getElementById('new-celeb').value.trim();
+  const pro = document.getElementById('new-pro').value.trim();
+  const emoji = document.getElementById('new-emoji').value.trim() || '💃';
+  if (!celeb || !pro) return;
+  const newId = Math.max(0, ...state.couples.map(c => c.id)) + 1;
+  state.couples.push({ id: newId, celeb, pro, emoji, scores: {}, eliminated: false });
+  document.getElementById('new-celeb').value = '';
+  document.getElementById('new-pro').value = '';
+  document.getElementById('new-emoji').value = '';
+  saveState();
+  render();
+}
+
+function exportData() {
+  const text = JSON.stringify(state, null, 2);
+  document.getElementById('data-export').value = text;
+  navigator.clipboard.writeText(text).catch(() => {});
+  showToast('State copied to clipboard!');
+}
+
+function importData() {
+  try {
+    const text = document.getElementById('data-export').value;
+    state = JSON.parse(text);
+    saveState();
+    render();
+    showToast('State imported!');
+  } catch(e) {
+    alert('Invalid data. Please paste valid JSON.');
+  }
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--navy);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity 0.2s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+loadState();
+render();
+</script>
+</body>
+</html>
